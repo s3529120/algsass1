@@ -2,6 +2,7 @@ package kdTree;
 
 import java.util.List;
 
+import nearestNeigh.KDTreeNN;
 import nearestNeigh.Point;
 
 public class Node
@@ -42,12 +43,12 @@ public class Node
    }
    public Boolean setLeftChild(Node node){
       this.leftChild=node;
-      node.setParent(node);
+      node.setParent(this);
       return true;
    }
    public Boolean setRightChild(Node node){
-      rightChild=node;
-      node.setParent(node);
+      this.rightChild=node;
+      node.setParent(this);
       return true;
    }
    public Boolean setData(Point point){
@@ -60,20 +61,24 @@ public class Node
    }
    
    //Methods
-   public void recursion(Point point, Point[] currBest,List<Node> checked,Split split,int k){
+   public void recursion(Point point,Split split,int k){
       Node focus=this;
       Boolean bool=true;
-
+      
       while(bool){
          if(focus.getData().cat==point.cat){
-            bool=Point.addTo(focus, point, currBest, k);
+            bool=Point.addTo(focus, point, k);
          }
-         checked.add(focus);
-         focus=focus.getParent();
-         if(focus.getLeftChild() != null && !checked.contains(focus.getLeftChild())){
-            focus.getLeftChild().getLeaf(point, split).recursion(point, currBest, checked, split, k);
-         }if(focus.getRightChild() != null && !checked.contains(focus.getRightChild())){
-            focus.getRightChild().getLeaf(point, split).recursion(point, currBest, checked, split, k);
+         KDTreeNN.checked.add(focus);
+         if(focus.getLeftChild() != null && !KDTreeNN.checked.contains(focus.getLeftChild())){
+            focus.getLeftChild().getLeaf(point, split).recursion(point, split, k);
+         }if(focus.getRightChild() != null && !KDTreeNN.checked.contains(focus.getRightChild())){
+            focus.getRightChild().getLeaf(point, split).recursion(point, split, k);
+         }
+         if(focus.getParent()==null||KDTreeNN.checked.contains(focus.getParent())){
+        	 bool=false;
+         }else{
+        	 focus=focus.getParent();
          }
       }
       
@@ -94,14 +99,12 @@ public class Node
                }else{
                   focus=focus.getRightChild();
                }
-               split=Split.lat;
             }else{
                if(focus.getRightChild()!=null){
                   focus=focus.getRightChild();
                }else{
                   focus=focus.getLeftChild();
                }
-               split=Split.lat;
             }
          }else{
             if(point.lat<focus.getData().lat){
@@ -110,16 +113,15 @@ public class Node
                }else{
                   focus=focus.getRightChild();
                }
-               split=Split.lon;
             }else{
                if(focus.getRightChild()!=null){
                   focus=focus.getRightChild();
                }else{
                   focus=focus.getLeftChild();
                }
-               split=Split.lon;
             }
          }
+         split=KDTreeNN.flip(split);
       }
       return focus;
    }

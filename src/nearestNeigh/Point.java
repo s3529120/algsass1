@@ -241,29 +241,47 @@ public class Point {
        return Math.round(points.length/2);
     }
     
-    public static Boolean addTo(Node node,Point searchpoint,Point[] closest,int k){
-       Point[] copyArr= new Point[closest.length];
+    public static Boolean addTo(Node node,Point searchpoint,int k){
+       Point[] copyArr= new Point[k];
        Boolean done=false;
        Point point=node.getData();
-       if(closest.length<k){
-          for(int i=0;i<k;i++){
-             if(closest[i]!=null){
-                copyArr[i]=closest[i];
-             }
+     //build copy array
+       for(int i=0;i<k;i++){
+          if(KDTreeNN.currentBest[i]!=null){
+             copyArr[i]=KDTreeNN.currentBest[i];
           }
+       }
+       //If closest not full add in
+       if(KDTreeNN.currentBest[k-1]==null){
+          //loop through until insertion point is found insert and copy remainder
           for(int i=0;i<k;i++){
-             if(closest[i].distTo(searchpoint)>point.distTo(searchpoint)){
-                closest[i]=point;
-                for(int j=i+1;i<k;j++){
-                   closest[j]=copyArr[j-1];
+        	  if(KDTreeNN.currentBest[i]==null){
+        		  KDTreeNN.currentBest[i]=point;
+        		  break;
+        	  }else if(KDTreeNN.currentBest[i].distTo(searchpoint)>point.distTo(searchpoint)){
+                KDTreeNN.currentBest[i]=point;
+                for(int j=i+1;j<k;j++){
+                		KDTreeNN.currentBest[j]=copyArr[j-1];
                 }
                 break;
              }
           }
           return true;
-       }else if(closest[k-1].distTo(searchpoint)<point.distTo(searchpoint)){
+       }else if(KDTreeNN.currentBest[k-1].distTo(searchpoint)<point.distTo(searchpoint)){
           return false;
        }
+     //loop through until insertion point is found insert and copy remainder
+       for(int i=0;i<k;i++){
+    	   if(KDTreeNN.currentBest[i].distTo(searchpoint)>point.distTo(searchpoint)){
+    		   KDTreeNN.currentBest[i]=point;
+    		   for(int j=i+1;j<k;j++){
+    			   KDTreeNN.currentBest[j]=copyArr[j-1];
+    		   }
+    		   done=true;
+    		   break;
+    	   }
+       }
+       return done;
     }
     
 } // end of class Point

@@ -15,6 +15,8 @@ import kdTree.Split;
 public class KDTreeNN implements NearestNeigh{
 
    private Node head;
+   public static Point[] currentBest;
+   public static List<Node> checked;
 
     @Override
     public void buildIndex(List<Point> points) {
@@ -36,12 +38,13 @@ public class KDTreeNN implements NearestNeigh{
        if(points.size()==1){
           copyArr=points.toArray(new Point[1]);
           return new Node(copyArr[0]);
+       }else if(points.size()==0){
+    	   return null;
        }
        Point[] sortedPoints = Point.sortPoints(points, bXDim);
        // find the median from sorted points
        int median = Point.getMedian(sortedPoints);
        // construct a node for the median point
-       System.out.println(sortedPoints[median].id+"--"+median+"--"+points.size());
        Node currParent = new Node(sortedPoints[median]);
        newleft=null;
        newright=null;
@@ -53,7 +56,6 @@ public class KDTreeNN implements NearestNeigh{
              copyArr[i]=sortedPoints[i];
           }
              newleft=buildTree(new ArrayList<Point>(Arrays.asList(copyArr)), flip(bXDim));
-             System.out.println("=l="+newleft.getData().id);
        // check if there is a right partition
        }if (median < points.size()){
           // flip() inverts the boolean value (effectively changing the dimension we split on next)
@@ -64,7 +66,6 @@ public class KDTreeNN implements NearestNeigh{
              i++;
           }
           newright=buildTree(new ArrayList<Point>(Arrays.asList(copyArr)), flip(bXDim));
-          System.out.println("=r="+newright.getData().id);
        }
        if(newleft!=null){
           currParent.setLeftChild(newleft);
@@ -77,24 +78,25 @@ public class KDTreeNN implements NearestNeigh{
     @Override
     public List<Point> search(Point searchTerm, int k) {
         // To be implemented.
-       Point[] currentBest=new Point[k];
+       currentBest=new Point[k];
        Node focus;
-       List<Node> checked = new ArrayList<Node>(); 
+       checked = new ArrayList<Node>(); 
        
        //Find closest leaf
-       focus=head;
        focus=head.getLeaf(searchTerm, Split.lon);
-       focus.recursion(searchTerm, currentBest,checked,focus.getSplit(),k);
-       if(searchTerm.lat<head.getData().lat){
+       focus.recursion(searchTerm,focus.getSplit(),k);
+       if(searchTerm.lon<head.getData().lon){
           focus=head.getRightChild().getLeaf(searchTerm, Split.lat);
-          focus.recursion(searchTerm, currentBest, checked, focus.getSplit(),k);
+          focus.recursion(searchTerm, focus.getSplit(),k);
        }else{
           focus=head.getLeftChild().getLeaf(searchTerm, Split.lat);
-          focus.recursion(searchTerm, currentBest, checked, focus.getSplit(),k);
+          focus.recursion(searchTerm, focus.getSplit(),k);
        }
        List<Point> ret = new ArrayList<Point>();
-       for(int i=0;i<currentBest.length;i++){
-          ret.add(currentBest[i]);
+       for(int i=0;i<k;i++){
+    	   if(currentBest[i]!=null){
+    		   ret.add(currentBest[i]);
+    	   }
        }
         return ret;
     }
@@ -110,13 +112,13 @@ public class KDTreeNN implements NearestNeigh{
           if(focus.getSplit()==Split.lon){
              if(point.lat<focus.getData().lat){
                 if(focus.getLeftChild()==null){
-                   focus.getLeftChild().setData(point);
+                    focus.setLeftChild(new Node(point));
                    return true;
                 }
                 focus=focus.getLeftChild();
              }else{
                 if(focus.getRightChild()==null){
-                   focus.getRightChild().setData(point);
+                    focus.setRightChild(new Node(point));
                    return true;
                 }
                 focus=focus.getRightChild();
@@ -124,13 +126,13 @@ public class KDTreeNN implements NearestNeigh{
           }else{
              if(point.lon<focus.getData().lon){
                 if(focus.getLeftChild()==null){
-                   focus.getLeftChild().setData(point);
+                   focus.setLeftChild(new Node(point));
                    return true;
                 }
                 focus=focus.getLeftChild();
              }else{
                 if(focus.getRightChild()==null){
-                   focus.getRightChild().setData(point);
+                   focus.setRightChild(new Node(point));
                    return true;
                 }
                 focus=focus.getRightChild();
@@ -158,19 +160,21 @@ public class KDTreeNN implements NearestNeigh{
               }else{
                  focus=focus.getRightChild();
               }
-              split=Split.lat;
            }else{
-              if(point.lon<focus.getData().lat){
+              if(point.lat<focus.getData().lat){
                  focus=focus.getLeftChild();
               }else{
                  focus=focus.getRightChild();
               }
-              split=Split.lon;
            }
+           split=KDTreeNN.flip(split);
         }
         prev=focus.getParent();
         Node.getChildren(focus,children);
-        if(prev.getLeftChild().getData().equals(focus.getData())){
+        if(children.isEmpty()){
+        	return true;
+        }
+        if(prev.getLeftChild()!=null && prev.getLeftChild().getData().equals(focus.getData())){
            prev.setLeftChild(buildTree(children,split));
         }else{
            prev.setRightChild(buildTree(children,split));
@@ -186,13 +190,13 @@ public class KDTreeNN implements NearestNeigh{
              return true;
           }
           if(focus.getSplit()==Split.lon){
-             if(point.lat<focus.getData().lat){
+             if(point.lon<focus.getData().lon){
                 focus=focus.getLeftChild();
              }else{
                 focus=focus.getRightChild();
              }
           }else{
-             if(point.lon<focus.getData().lon){
+             if(point.lat<focus.getData().lat){
                 focus=focus.getLeftChild();
              }else{
                 focus=focus.getRightChild();

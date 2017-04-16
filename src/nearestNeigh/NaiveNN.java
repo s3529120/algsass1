@@ -32,7 +32,6 @@ public class NaiveNN implements NearestNeigh{
        for(int i=0;i<list.size();i++){
           if(stored[i].cat==searchTerm.cat){
              matches[x]=stored[i];
-             System.out.println(stored[i].cat.toString() + searchTerm.cat.toString());
              x++;
           }
           if(x==k){
@@ -52,7 +51,6 @@ public class NaiveNN implements NearestNeigh{
              }
              if(stored[i].distTo(searchTerm)<matches[largest].distTo(searchTerm)&&searchTerm.cat==stored[i].cat){
                 matches[largest]=stored[i];
-                System.out.println(stored[i].cat.toString() + searchTerm.cat.toString());
              }
        }
         return Arrays.asList(matches);
@@ -73,7 +71,7 @@ public class NaiveNN implements NearestNeigh{
     public boolean deletePoint(Point point) {
         // To be implemented.
        Point[] stored;
-       stored=(Point[]) list.toArray();
+       stored=list.toArray(new Point[list.size()]);
        for(int i=0;i<list.size();i++){
           if(stored[i].equals(point)){
              list.remove(stored[i]);
@@ -88,7 +86,7 @@ public class NaiveNN implements NearestNeigh{
     public boolean isPointIn(Point point) {
         Boolean contains=false;
         Point[] stored;
-        stored=(Point[]) list.toArray();
+        stored=list.toArray(new Point[list.size()]);
         for(int i=0;i<list.size();i++){
            if(stored[i].equals(point)){
               contains=true;

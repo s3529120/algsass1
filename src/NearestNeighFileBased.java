@@ -35,7 +35,6 @@ public class NearestNeighFileBased {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-       LocalTime starttime = LocalTime.now();
         // read command line arguments
         if (args.length != 4) {
             System.err.println("Incorrect number of arguments.");
@@ -75,6 +74,7 @@ public class NearestNeighFileBased {
             usage(progName);
         }
 
+        
         String commandFileName = args[2];
         String outputFileName = args[3];
         File commandFile = new File(commandFileName);
@@ -151,6 +151,5 @@ public class NearestNeighFileBased {
             System.err.println("Command file doesn't exist.");
             usage(progName);
         }
-        System.out.println(LocalTime.now().minusNanos(starttime.getNano()));
     }
 }
